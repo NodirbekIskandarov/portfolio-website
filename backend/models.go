@@ -57,8 +57,8 @@ type Experience struct {
 	Position    string             `json:"position" bson:"position"`
 	Description string             `json:"description" bson:"description"`
 	Location    string             `json:"location" bson:"location"`
-	StartDate   time.Time          `json:"startDate" bson:"startDate"`
-	EndDate     *time.Time         `json:"endDate" bson:"endDate"`
+	StartDate   string             `json:"startDate" bson:"startDate"`
+	EndDate     string             `json:"endDate" bson:"endDate"`
 	Current     bool               `json:"current" bson:"current"`
 	Order       int                `json:"order" bson:"order"`
 	CreatedAt   time.Time          `json:"createdAt" bson:"createdAt"`

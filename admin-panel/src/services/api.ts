@@ -15,6 +15,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle expired/invalid token — auto logout on 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('adminToken');
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
 export const login = (username: string, password: string) =>
   api.post('/auth/login', { username, password });
@@ -48,7 +60,7 @@ export const updateTestimonial = (id: string, data: any) => api.put(`/admin/test
 export const deleteTestimonial = (id: string) => api.delete(`/admin/testimonials/${id}`);
 
 // Blog
-export const getBlogPosts = () => api.get('/blog');
+export const getBlogPosts = () => api.get('/admin/blog');
 export const createBlogPost = (data: any) => api.post('/admin/blog', data);
 export const updateBlogPost = (id: string, data: any) => api.put(`/admin/blog/${id}`, data);
 export const deleteBlogPost = (id: string) => api.delete(`/admin/blog/${id}`);

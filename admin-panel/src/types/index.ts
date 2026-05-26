@@ -1,5 +1,5 @@
 export interface Profile {
-  _id?: string;
+  id?: string;
   name: string;
   title: string;
   bio: string;
@@ -13,7 +13,7 @@ export interface Profile {
 }
 
 export interface Skill {
-  _id?: string;
+  id?: string;
   name: string;
   category: string;
   level: number;
@@ -22,7 +22,7 @@ export interface Skill {
 }
 
 export interface Project {
-  _id?: string;
+  id?: string;
   title: string;
   description: string;
   image: string;
@@ -34,7 +34,7 @@ export interface Project {
 }
 
 export interface Experience {
-  _id?: string;
+  id?: string;
   company: string;
   position: string;
   description: string;
@@ -46,7 +46,7 @@ export interface Experience {
 }
 
 export interface Testimonial {
-  _id?: string;
+  id?: string;
   name: string;
   position: string;
   company: string;
@@ -56,7 +56,7 @@ export interface Testimonial {
 }
 
 export interface BlogPost {
-  _id?: string;
+  id?: string;
   title: string;
   slug: string;
   content: string;
@@ -70,7 +70,7 @@ export interface BlogPost {
 }
 
 export interface Contact {
-  _id?: string;
+  id?: string;
   name: string;
   email: string;
   subject: string;

@@ -54,12 +54,18 @@ func main() {
 		return
 	}
 
+	if string(jwtSecret) == "your-secret-key-change-this" {
+		log.Println("WARNING: JWT_SECRET is using the default value. Set a strong secret in production!")
+	}
+
 	// Initialize Gin router
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:5174"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -94,7 +100,7 @@ func setupRoutes(router *gin.Engine) {
 		// Auth routes
 		auth := api.Group("/auth")
 		{
-			auth.POST("/login", login)
+			auth.POST("/login", loginRateLimitMiddleware(), login)
 		}
 
 		// Protected admin routes
@@ -123,6 +129,8 @@ func setupRoutes(router *gin.Engine) {
 			admin.PUT("/blog/:id", updateBlogPost)
 			admin.DELETE("/blog/:id", deleteBlogPost)
 			
+			admin.GET("/blog", getBlogPostsAdmin)
+
 			admin.GET("/contacts", getContacts)
 			admin.DELETE("/contacts/:id", deleteContact)
 		}

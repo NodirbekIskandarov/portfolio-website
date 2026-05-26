@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
 // Profile handlers
 func getProfile(c *gin.Context) {
@@ -30,6 +34,7 @@ func updateProfile(c *gin.Context) {
 		return
 	}
 
+	profile.ID = primitive.ObjectID{} // prevent $set on _id
 	profile.UpdatedAt = time.Now()
 	filter := bson.M{}
 	update := bson.M{"$set": profile}
@@ -94,15 +99,21 @@ func updateSkill(c *gin.Context) {
 		return
 	}
 
+	skill.ID = primitive.ObjectID{} // prevent $set on _id
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": skill}
 
-	_, err = database.Collection("skills").UpdateOne(context.Background(), filter, update)
+	result, err := database.Collection("skills").UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update skill"})
 		return
 	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Skill not found"})
+		return
+	}
 
+	skill.ID = id
 	c.JSON(http.StatusOK, skill)
 }
 
@@ -172,15 +183,21 @@ func updateProject(c *gin.Context) {
 		return
 	}
 
+	project.ID = primitive.ObjectID{} // prevent $set on _id
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": project}
 
-	_, err = database.Collection("projects").UpdateOne(context.Background(), filter, update)
+	result, err := database.Collection("projects").UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project"})
 		return
 	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
+		return
+	}
 
+	project.ID = id
 	c.JSON(http.StatusOK, project)
 }
 
@@ -250,15 +267,21 @@ func updateExperience(c *gin.Context) {
 		return
 	}
 
+	experience.ID = primitive.ObjectID{} // prevent $set on _id
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": experience}
 
-	_, err = database.Collection("experience").UpdateOne(context.Background(), filter, update)
+	result, err := database.Collection("experience").UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update experience"})
 		return
 	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Experience not found"})
+		return
+	}
 
+	experience.ID = id
 	c.JSON(http.StatusOK, experience)
 }
 
@@ -328,15 +351,21 @@ func updateTestimonial(c *gin.Context) {
 		return
 	}
 
+	testimonial.ID = primitive.ObjectID{} // prevent $set on _id
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": testimonial}
 
-	_, err = database.Collection("testimonials").UpdateOne(context.Background(), filter, update)
+	result, err := database.Collection("testimonials").UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update testimonial"})
 		return
 	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Testimonial not found"})
+		return
+	}
 
+	testimonial.ID = id
 	c.JSON(http.StatusOK, testimonial)
 }
 
@@ -357,6 +386,23 @@ func deleteTestimonial(c *gin.Context) {
 }
 
 // Blog handlers
+func getBlogPostsAdmin(c *gin.Context) {
+	cursor, err := database.Collection("blog").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch blog posts"})
+		return
+	}
+	defer cursor.Close(context.Background())
+
+	var posts []BlogPost
+	if err = cursor.All(context.Background(), &posts); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode blog posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
+
 func getBlogPosts(c *gin.Context) {
 	filter := bson.M{"published": true}
 	cursor, err := database.Collection("blog").Find(context.Background(), filter, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}))
@@ -429,16 +475,22 @@ func updateBlogPost(c *gin.Context) {
 		return
 	}
 
+	post.ID = primitive.ObjectID{} // prevent $set on _id
 	post.UpdatedAt = time.Now()
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": post}
 
-	_, err = database.Collection("blog").UpdateOne(context.Background(), filter, update)
+	result, err := database.Collection("blog").UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update blog post"})
 		return
 	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Blog post not found"})
+		return
+	}
 
+	post.ID = id
 	c.JSON(http.StatusOK, post)
 }
 
@@ -463,6 +515,23 @@ func createContact(c *gin.Context) {
 	var contact Contact
 	if err := c.ShouldBindJSON(&contact); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	contact.Name = strings.TrimSpace(contact.Name)
+	contact.Email = strings.TrimSpace(contact.Email)
+	contact.Message = strings.TrimSpace(contact.Message)
+
+	if contact.Name == "" || len(contact.Name) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name must be between 1 and 100 characters"})
+		return
+	}
+	if !emailRegex.MatchString(contact.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email address"})
+		return
+	}
+	if contact.Message == "" || len(contact.Message) > 5000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Message must be between 1 and 5000 characters"})
 		return
 	}
 
