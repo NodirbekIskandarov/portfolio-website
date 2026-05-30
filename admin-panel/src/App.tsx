@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as api from './services/api';
-import type { Profile, Skill, Project, Experience, BlogPost, Contact } from './types';
+import type { Profile, Skill, Project, Experience, Education, BlogPost, Contact } from './types';
 
-type Tab = 'overview' | 'profile' | 'skills' | 'projects' | 'experience' | 'blog' | 'contacts';
+type Tab = 'overview' | 'profile' | 'skills' | 'projects' | 'experience' | 'education' | 'blog' | 'contacts';
 type Toast = { id: number; type: 'success' | 'error'; msg: string };
 type LangTab = 'en' | 'ru' | 'uz';
 
@@ -84,6 +84,7 @@ export default function App() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [educations, setEducations] = useState<Education[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
 
@@ -102,13 +103,14 @@ export default function App() {
 
   const loadData = async () => {
     try {
-      const [pr, sk, pj, ex, bl] = await Promise.all([
-        api.getProfile(), api.getSkills(), api.getProjects(), api.getExperience(), api.getBlogPosts(),
+      const [pr, sk, pj, ex, edu, bl] = await Promise.all([
+        api.getProfile(), api.getSkills(), api.getProjects(), api.getExperience(), api.getEducation(), api.getBlogPosts(),
       ]);
       setProfile(pr.data);
       setSkills(sk.data);
       setProjects(pj.data);
       setExperiences(ex.data);
+      setEducations(Array.isArray(edu.data) ? edu.data : []);
       setBlogPosts(bl.data);
     } catch {}
   };
@@ -177,6 +179,16 @@ export default function App() {
     setSaving(false);
   };
 
+  const saveEducation = async (data: Record<string, any>) => {
+    setSaving(true);
+    try {
+      if (data.id) { await api.updateEducation(data.id, data); setEducations(educations.map(e => e.id === data.id ? { ...e, ...data } as Education : e)); }
+      else { const r = await api.createEducation(data); setEducations([...educations, r.data]); }
+      toast('success', data.id ? 'Education updated' : 'Education added'); setModal(null);
+    } catch { toast('error', 'Failed to save'); }
+    setSaving(false);
+  };
+
   const saveBlog = async (data: Record<string, any>) => {
     setSaving(true);
     try {
@@ -202,6 +214,12 @@ export default function App() {
   const delExperience = (id: string) => askConfirm('Delete this experience entry?', async () => {
     setConfirm(null);
     try { await api.deleteExperience(id); setExperiences(experiences.filter(e => e.id !== id)); toast('success', 'Deleted'); }
+    catch { toast('error', 'Failed to delete'); }
+  });
+
+  const delEducation = (id: string) => askConfirm('Delete this education entry?', async () => {
+    setConfirm(null);
+    try { await api.deleteEducation(id); setEducations(educations.filter(e => e.id !== id)); toast('success', 'Deleted'); }
     catch { toast('error', 'Failed to delete'); }
   });
 
@@ -268,6 +286,7 @@ export default function App() {
     { tab: 'skills', label: 'Skills', count: skills.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" /></svg> },
     { tab: 'projects', label: 'Projects', count: projects.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" /></svg> },
     { tab: 'experience', label: 'Experience', count: experiences.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg> },
+    { tab: 'education', label: 'Education', count: educations.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg> },
     { tab: 'blog', label: 'Blog', count: blogPosts.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" /></svg> },
     { tab: 'contacts', label: 'Messages', count: contacts.filter(c => !c.read).length || contacts.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg> },
   ];
@@ -348,6 +367,7 @@ export default function App() {
                   { label: 'Skills', count: skills.length, grad: 'from-blue-600 to-blue-800' },
                   { label: 'Projects', count: projects.length, grad: 'from-violet-600 to-violet-800' },
                   { label: 'Experience', count: experiences.length, grad: 'from-emerald-600 to-emerald-800' },
+                  { label: 'Education', count: educations.length, grad: 'from-teal-600 to-teal-800' },
                   { label: 'Blog Posts', count: blogPosts.length, grad: 'from-orange-500 to-orange-700' },
                   { label: 'Messages', count: contacts.length, grad: 'from-pink-600 to-pink-800' },
                 ].map(({ label, count, grad }) => (
@@ -590,6 +610,40 @@ export default function App() {
                   </div>
                 ))}
                 {experiences.length === 0 && <p className="py-14 text-center text-slate-600 text-sm">No experience entries yet.</p>}
+              </div>
+            </div>
+          )}
+
+          {/* EDUCATION */}
+          {activeTab === 'education' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Education</h2>
+                <button onClick={() => openModal('education', { institution: '', degree: '', field: '', startDate: '', endDate: '', current: false, location: '', description: '', grade: '', order: educations.length + 1 })} className={P}>
+                  + Add Education
+                </button>
+              </div>
+              <div className="space-y-3">
+                {educations.map(edu => (
+                  <div key={edu.id} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <h3 className="text-slate-100 font-semibold text-sm">{edu.institution}</h3>
+                          {edu.current && <span className="text-xs px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-full border border-emerald-500/20">Current</span>}
+                        </div>
+                        <p className="text-emerald-400 text-xs font-medium">{edu.degree}{edu.field ? ` · ${edu.field}` : ''}</p>
+                        <p className="text-slate-500 text-xs mt-1">{edu.location} · {edu.startDate} – {edu.current ? 'Present' : edu.endDate}</p>
+                        {edu.grade && <p className="text-slate-600 text-xs mt-0.5">GPA: {edu.grade}</p>}
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={() => openModal('education', { ...edu })} className="text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500/10 transition-all">Edit</button>
+                        <button onClick={() => delEducation(edu.id!)} className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-all">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {educations.length === 0 && <p className="py-14 text-center text-slate-600 text-sm">No education entries yet.</p>}
               </div>
             </div>
           )}
@@ -992,6 +1046,104 @@ export default function App() {
                       className="w-4 h-4 rounded accent-blue-500" />
                     <span className="text-slate-300 text-sm">Current position</span>
                   </label>
+                  <div className="flex gap-3 justify-end pt-2">
+                    <button type="button" onClick={() => setModal(null)} className={S}>Cancel</button>
+                    <button type="submit" disabled={saving} className={P}>{saving ? 'Saving…' : 'Save'}</button>
+                  </div>
+                </form>
+              )}
+
+              {/* ── Education form ── */}
+              {modal.type === 'education' && (
+                <form onSubmit={e => { e.preventDefault(); saveEducation(modal.data); }} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Start Date *</label>
+                      <input type="month" className={I} value={modal.data.startDate} onChange={e => patchModal({ startDate: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">End Date</label>
+                      <input type="month" className={I} value={modal.data.endDate || ''} disabled={modal.data.current} onChange={e => patchModal({ endDate: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Location</label>
+                      <input className={I} value={modal.data.location || ''} onChange={e => patchModal({ location: e.target.value })} placeholder="City, Country" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">GPA / Grade</label>
+                      <input className={I} value={modal.data.grade || ''} onChange={e => patchModal({ grade: e.target.value })} placeholder="e.g. 3.8 / 4.0" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Order</label>
+                      <input type="number" className={I} value={modal.data.order} onChange={e => patchModal({ order: parseInt(e.target.value) })} />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" checked={modal.data.current} onChange={e => patchModal({ current: e.target.checked, endDate: e.target.checked ? '' : modal.data.endDate })} className="w-4 h-4 rounded accent-blue-500" />
+                    <span className="text-slate-300 text-sm">Currently studying</span>
+                  </label>
+
+                  <div className="border border-slate-700/60 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Translatable</p>
+                      <LangTabs active={langTab} onChange={setLangTab} />
+                    </div>
+                    {langTab === 'en' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Institution (EN) *</label>
+                        <input className={I} value={modal.data.institution} onChange={e => patchModal({ institution: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Degree (EN) *</label>
+                        <input className={I} value={modal.data.degree} onChange={e => patchModal({ degree: e.target.value })} placeholder="Bachelor's Degree" required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Field of Study (EN)</label>
+                        <input className={I} value={modal.data.field} onChange={e => patchModal({ field: e.target.value })} placeholder="Software Engineering" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (EN)</label>
+                        <textarea className={`${I} resize-none`} rows={3} value={modal.data.description || ''} onChange={e => patchModal({ description: e.target.value })} />
+                      </div>
+                    </>)}
+                    {langTab === 'ru' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Institution (RU)</label>
+                        <input className={I} value={modal.data.institutionRu || ''} onChange={e => patchModal({ institutionRu: e.target.value })} placeholder="Университет на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Degree (RU)</label>
+                        <input className={I} value={modal.data.degreeRu || ''} onChange={e => patchModal({ degreeRu: e.target.value })} placeholder="Бакалавр" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Field (RU)</label>
+                        <input className={I} value={modal.data.fieldRu || ''} onChange={e => patchModal({ fieldRu: e.target.value })} placeholder="Программная инженерия" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (RU)</label>
+                        <textarea className={`${I} resize-none`} rows={3} value={modal.data.descriptionRu || ''} onChange={e => patchModal({ descriptionRu: e.target.value })} placeholder="Описание на русском..." />
+                      </div>
+                    </>)}
+                    {langTab === 'uz' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Institution (UZ)</label>
+                        <input className={I} value={modal.data.institutionUz || ''} onChange={e => patchModal({ institutionUz: e.target.value })} placeholder="O'zbekcha universitet..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Degree (UZ)</label>
+                        <input className={I} value={modal.data.degreeUz || ''} onChange={e => patchModal({ degreeUz: e.target.value })} placeholder="Bakalavr" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Field (UZ)</label>
+                        <input className={I} value={modal.data.fieldUz || ''} onChange={e => patchModal({ fieldUz: e.target.value })} placeholder="Dasturiy muhandislik" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (UZ)</label>
+                        <textarea className={`${I} resize-none`} rows={3} value={modal.data.descriptionUz || ''} onChange={e => patchModal({ descriptionUz: e.target.value })} placeholder="O'zbekcha tavsif..." />
+                      </div>
+                    </>)}
+                  </div>
+
                   <div className="flex gap-3 justify-end pt-2">
                     <button type="button" onClick={() => setModal(null)} className={S}>Cancel</button>
                     <button type="submit" disabled={saving} className={P}>{saving ? 'Saving…' : 'Save'}</button>

@@ -21,6 +21,9 @@ export const getProjects = () => api.get('/projects');
 // Experience
 export const getExperience = () => api.get('/experience');
 
+// Education
+export const getEducation = () => api.get('/education');
+
 // Testimonials
 export const getTestimonials = () => api.get('/testimonials');
 

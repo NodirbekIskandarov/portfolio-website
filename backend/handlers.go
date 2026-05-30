@@ -301,6 +301,76 @@ func deleteExperience(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Experience deleted successfully"})
 }
 
+// ── Education handlers ────────────────────────────────────────────────────────
+
+func getEducation(c *gin.Context) {
+	education := make([]Education, 0)
+	cursor, err := database.Collection("education").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.D{{Key: "order", Value: 1}}))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch education"})
+		return
+	}
+	defer cursor.Close(context.Background())
+	if err = cursor.All(context.Background(), &education); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode education"})
+		return
+	}
+	c.JSON(http.StatusOK, education)
+}
+
+func createEducation(c *gin.Context) {
+	var edu Education
+	if err := c.ShouldBindJSON(&edu); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	edu.ID = primitive.NewObjectID()
+	edu.CreatedAt = time.Now()
+	if _, err := database.Collection("education").InsertOne(context.Background(), edu); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create education"})
+		return
+	}
+	c.JSON(http.StatusCreated, edu)
+}
+
+func updateEducation(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	var edu Education
+	if err := c.ShouldBindJSON(&edu); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	edu.ID = primitive.ObjectID{}
+	result, err := database.Collection("education").UpdateOne(context.Background(), bson.M{"_id": id}, bson.M{"$set": edu})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update education"})
+		return
+	}
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Education not found"})
+		return
+	}
+	edu.ID = id
+	c.JSON(http.StatusOK, edu)
+}
+
+func deleteEducation(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	if _, err = database.Collection("education").DeleteOne(context.Background(), bson.M{"_id": id}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete education"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Education deleted"})
+}
+
 // Testimonials handlers
 func getTestimonials(c *gin.Context) {
 	cursor, err := database.Collection("testimonials").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.D{{Key: "order", Value: 1}}))

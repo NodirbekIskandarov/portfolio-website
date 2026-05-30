@@ -12,7 +12,7 @@ import (
 func seedDatabase() {
 	ctx := context.Background()
 
-	for _, col := range []string{"admins", "profile", "skills", "projects", "experience", "testimonials", "blog", "contacts"} {
+	for _, col := range []string{"admins", "profile", "skills", "projects", "experience", "education", "testimonials", "blog", "contacts"} {
 		database.Collection(col).Drop(ctx)
 	}
 	log.Println("Existing collections cleared")
@@ -235,6 +235,35 @@ func seedDatabase() {
 	}
 	for _, exp := range experiences {
 		database.Collection("experience").InsertOne(ctx, exp)
+	}
+
+	// Education
+	educationData := []Education{
+		{
+			ID:            primitive.NewObjectID(),
+			Institution:   "Tashkent University of Information Technologies",
+			InstitutionRu: "Ташкентский университет информационных технологий",
+			InstitutionUz: "Toshkent axborot texnologiyalari universiteti (TATU)",
+			Degree:        "Bachelor's Degree",
+			DegreeRu:      "Бакалавр",
+			DegreeUz:      "Bakalavr",
+			Field:         "Software Engineering",
+			FieldRu:       "Программная инженерия",
+			FieldUz:       "Dasturiy muhandislik",
+			StartDate:     "2021-09",
+			EndDate:       "2025-06",
+			Current:       false,
+			Location:      "Tashkent, Uzbekistan",
+			Description:   "Studied computer science fundamentals, software engineering, algorithms, data structures, and modern web development technologies. Actively participated in university projects and programming competitions.",
+			DescriptionRu: "Изучал основы информатики, программную инженерию, алгоритмы, структуры данных и современные технологии веб-разработки. Активно участвовал в университетских проектах и соревнованиях по программированию.",
+			DescriptionUz: "Informatika asoslarini, dasturiy muhandislik, algoritmlar, ma'lumotlar strukturalari va zamonaviy veb-dasturlash texnologiyalarini o'rgandim. Universitet loyihalari va dasturlash musobaqalarida faol qatnashdim.",
+			Grade:         "3.7 / 4.0",
+			Order:         1,
+			CreatedAt:     time.Now(),
+		},
+	}
+	for _, edu := range educationData {
+		database.Collection("education").InsertOne(ctx, edu)
 	}
 
 	// Blog posts

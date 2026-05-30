@@ -21,6 +21,7 @@ export default function Footer({ profile }: { profile: Profile | null }) {
     { label: t.nav.skills,     href: '#skills' },
     { label: t.nav.projects,   href: '#projects' },
     { label: t.nav.experience, href: '#experience' },
+    { label: t.nav.education,  href: '#education' },
     { label: t.nav.contact,    href: '#contact' },
   ];
 

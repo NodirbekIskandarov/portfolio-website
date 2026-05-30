@@ -92,6 +92,7 @@ func setupRoutes(router *gin.Engine) {
 		api.GET("/skills", getSkills)
 		api.GET("/projects", getProjects)
 		api.GET("/experience", getExperience)
+		api.GET("/education", getEducation)
 		api.GET("/testimonials", getTestimonials)
 		api.GET("/blog", getBlogPosts)
 		api.GET("/blog/:id", getBlogPost)
@@ -120,6 +121,10 @@ func setupRoutes(router *gin.Engine) {
 			admin.POST("/experience", createExperience)
 			admin.PUT("/experience/:id", updateExperience)
 			admin.DELETE("/experience/:id", deleteExperience)
+
+			admin.POST("/education", createEducation)
+			admin.PUT("/education/:id", updateEducation)
+			admin.DELETE("/education/:id", deleteEducation)
 			
 			admin.POST("/testimonials", createTestimonial)
 			admin.PUT("/testimonials/:id", updateTestimonial)

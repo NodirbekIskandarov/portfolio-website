@@ -49,6 +49,12 @@ export const deleteProject = (id: string) => api.delete(`/admin/projects/${id}`)
 
 // Experience
 export const getExperience = () => api.get('/experience');
+
+// Education
+export const getEducation = () => api.get('/education');
+export const createEducation = (data: any) => api.post('/admin/education', data);
+export const updateEducation = (id: string, data: any) => api.put(`/admin/education/${id}`, data);
+export const deleteEducation = (id: string) => api.delete(`/admin/education/${id}`);
 export const createExperience = (data: any) => api.post('/admin/experience', data);
 export const updateExperience = (id: string, data: any) => api.put(`/admin/experience/${id}`, data);
 export const deleteExperience = (id: string) => api.delete(`/admin/experience/${id}`);

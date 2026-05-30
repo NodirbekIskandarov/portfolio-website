@@ -59,6 +59,28 @@ export interface Experience {
   order: number;
 }
 
+export interface Education {
+  id?: string;
+  institution: string;
+  institutionRu?: string;
+  institutionUz?: string;
+  degree: string;
+  degreeRu?: string;
+  degreeUz?: string;
+  field: string;
+  fieldRu?: string;
+  fieldUz?: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  location: string;
+  description?: string;
+  descriptionRu?: string;
+  descriptionUz?: string;
+  grade?: string;
+  order: number;
+}
+
 export interface Testimonial {
   id?: string;
   name: string;

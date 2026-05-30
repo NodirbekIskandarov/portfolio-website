@@ -58,6 +58,30 @@ type Project struct {
 	CreatedAt     time.Time          `json:"createdAt" bson:"createdAt"`
 }
 
+// Education represents an academic education entry
+type Education struct {
+	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Institution   string             `json:"institution" bson:"institution"`
+	InstitutionRu string             `json:"institutionRu,omitempty" bson:"institutionRu,omitempty"`
+	InstitutionUz string             `json:"institutionUz,omitempty" bson:"institutionUz,omitempty"`
+	Degree        string             `json:"degree" bson:"degree"`
+	DegreeRu      string             `json:"degreeRu,omitempty" bson:"degreeRu,omitempty"`
+	DegreeUz      string             `json:"degreeUz,omitempty" bson:"degreeUz,omitempty"`
+	Field         string             `json:"field" bson:"field"`
+	FieldRu       string             `json:"fieldRu,omitempty" bson:"fieldRu,omitempty"`
+	FieldUz       string             `json:"fieldUz,omitempty" bson:"fieldUz,omitempty"`
+	StartDate     string             `json:"startDate" bson:"startDate"`
+	EndDate       string             `json:"endDate" bson:"endDate"`
+	Current       bool               `json:"current" bson:"current"`
+	Location      string             `json:"location" bson:"location"`
+	Description   string             `json:"description" bson:"description"`
+	DescriptionRu string             `json:"descriptionRu,omitempty" bson:"descriptionRu,omitempty"`
+	DescriptionUz string             `json:"descriptionUz,omitempty" bson:"descriptionUz,omitempty"`
+	Grade         string             `json:"grade" bson:"grade"`
+	Order         int                `json:"order" bson:"order"`
+	CreatedAt     time.Time          `json:"createdAt" bson:"createdAt"`
+}
+
 // Experience represents work experience
 type Experience struct {
 	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
