@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { HiClock, HiEye, HiArrowRight } from 'react-icons/hi';
-import { useTranslation, timeAgo } from '@/lib/i18n';
+import { useTranslation, timeAgo, localize } from '@/lib/i18n';
 
 interface BlogPost {
   id: string;
@@ -15,7 +15,7 @@ interface BlogPost {
 }
 
 export default function Blog({ posts }: { posts: BlogPost[] }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   if (!posts.length) return null;
 
   return (
@@ -65,9 +65,11 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
                 </div>
 
                 <h3 className="text-white font-bold text-base mb-2 leading-snug group-hover:text-blue-400 transition-colors line-clamp-2">
-                  {post.title}
+                  {localize(post as Record<string, any>, 'title', lang)}
                 </h3>
-                <p className="text-gray-400 text-sm leading-relaxed flex-1 line-clamp-2 mb-4">{post.excerpt}</p>
+                <p className="text-gray-400 text-sm leading-relaxed flex-1 line-clamp-2 mb-4">
+                  {localize(post as Record<string, any>, 'excerpt', lang)}
+                </p>
 
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                   <div className="flex items-center gap-3 text-gray-600 text-xs">

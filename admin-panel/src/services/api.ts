@@ -68,5 +68,6 @@ export const deleteBlogPost = (id: string) => api.delete(`/admin/blog/${id}`);
 // Contacts
 export const getContacts = () => api.get('/admin/contacts');
 export const deleteContact = (id: string) => api.delete(`/admin/contacts/${id}`);
+export const markContactRead = (id: string) => api.patch(`/admin/contacts/${id}/read`);
 
 export default api;

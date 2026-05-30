@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { FaGithub, FaLinkedin, FaTwitter, FaGlobe } from 'react-icons/fa';
 import { HiArrowDown } from 'react-icons/hi';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, localize } from '@/lib/i18n';
 
 interface Profile {
   name?: string | null;
@@ -29,7 +29,7 @@ export default function Hero({
   projectCount?: number;
   skillCount?: number;
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   const initials = profile?.name
     ?.split(' ')
@@ -95,11 +95,11 @@ export default function Hero({
         </motion.h1>
 
         <motion.p {...fade(0.4)} className="text-xl md:text-2xl gradient-text font-semibold mb-6">
-          {profile?.title ?? 'Frontend Developer'}
+          {profile ? localize(profile as Record<string, any>, 'title', lang) || profile.title : 'Frontend Developer'}
         </motion.p>
 
         <motion.p {...fade(0.45)} className="text-gray-400 text-base md:text-lg max-w-2xl leading-relaxed mb-10">
-          {profile?.bio ?? 'Building modern web experiences with clean code and thoughtful design.'}
+          {profile ? localize(profile as Record<string, any>, 'bio', lang) || profile.bio : 'Building modern web experiences with clean code and thoughtful design.'}
         </motion.p>
 
         {/* CTA Buttons */}

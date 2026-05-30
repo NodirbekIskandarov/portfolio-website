@@ -4,7 +4,11 @@ import { getProjects } from '../api';
 interface Project {
   id: string;
   title: string;
+  titleRu?: string;
+  titleUz?: string;
   description: string;
+  descriptionRu?: string;
+  descriptionUz?: string;
   image: string;
   images?: string[];
   technologies: string[];

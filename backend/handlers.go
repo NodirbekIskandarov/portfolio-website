@@ -556,13 +556,31 @@ func getContacts(c *gin.Context) {
 	}
 	defer cursor.Close(context.Background())
 
-	var contacts []Contact
+	contacts := make([]Contact, 0)
 	if err = cursor.All(context.Background(), &contacts); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode contacts"})
 		return
 	}
 
 	c.JSON(http.StatusOK, contacts)
+}
+
+func markContactRead(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	result, err := database.Collection("contacts").UpdateOne(
+		context.Background(),
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{"read": true}},
+	)
+	if err != nil || result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Contact not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Marked as read"})
 }
 
 func deleteContact(c *gin.Context) {

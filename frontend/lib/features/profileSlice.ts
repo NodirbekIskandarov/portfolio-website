@@ -5,7 +5,11 @@ interface Profile {
   id: string;
   name: string;
   title: string;
+  titleRu?: string;
+  titleUz?: string;
   bio: string;
+  bioRu?: string;
+  bioUz?: string;
   email: string;
   phone: string;
   location: string;

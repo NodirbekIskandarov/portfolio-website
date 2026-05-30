@@ -133,6 +133,7 @@ func setupRoutes(router *gin.Engine) {
 
 			admin.GET("/contacts", getContacts)
 			admin.DELETE("/contacts/:id", deleteContact)
+			admin.PATCH("/contacts/:id/read", markContactRead)
 		}
 	}
 

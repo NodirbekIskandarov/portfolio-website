@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { HiBriefcase } from 'react-icons/hi';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, localize } from '@/lib/i18n';
 
 interface Experience {
   id: string;
@@ -66,10 +66,10 @@ export default function Experience({ experience }: { experience: Experience[] })
                 <div className="glass-card gradient-border rounded-2xl p-6 transition-all duration-300 hover:-translate-x-1">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
                     <div>
-                      <h3 className="text-lg font-bold text-white">{exp.position}</h3>
+                      <h3 className="text-lg font-bold text-white">{localize(exp as Record<string, any>, 'position', lang)}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <HiBriefcase className="text-blue-400" size={14} />
-                        <span className="text-blue-400 font-medium text-sm">{exp.company}</span>
+                        <span className="text-blue-400 font-medium text-sm">{localize(exp as Record<string, any>, 'company', lang)}</span>
                         <span className="text-gray-600 text-xs">· {exp.location}</span>
                       </div>
                     </div>
@@ -94,7 +94,7 @@ export default function Experience({ experience }: { experience: Experience[] })
                     </div>
                   </div>
 
-                  <p className="text-gray-400 text-sm leading-relaxed">{exp.description}</p>
+                  <p className="text-gray-400 text-sm leading-relaxed">{localize(exp as Record<string, any>, 'description', lang)}</p>
                 </div>
               </motion.div>
             ))}

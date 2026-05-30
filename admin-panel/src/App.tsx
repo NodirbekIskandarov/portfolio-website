@@ -4,12 +4,26 @@ import type { Profile, Skill, Project, Experience, BlogPost, Contact } from './t
 
 type Tab = 'overview' | 'profile' | 'skills' | 'projects' | 'experience' | 'blog' | 'contacts';
 type Toast = { id: number; type: 'success' | 'error'; msg: string };
+type LangTab = 'en' | 'ru' | 'uz';
 
 let _tid = 0;
 
 const I = 'w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500/70 transition-colors';
 const P = 'px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed';
 const S = 'px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium rounded-xl transition-colors';
+
+function LangTabs({ active, onChange }: { active: LangTab; onChange: (l: LangTab) => void }) {
+  return (
+    <div className="flex gap-1 mb-4 p-0.5 rounded-lg bg-slate-900 border border-slate-700 w-fit">
+      {(['en', 'ru', 'uz'] as LangTab[]).map(l => (
+        <button key={l} onClick={() => onChange(l)}
+          className={`px-3 py-1 rounded-md text-xs font-semibold uppercase transition-all ${
+            active === l ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+          }`}>{l}</button>
+      ))}
+    </div>
+  );
+}
 
 function ToastList({ toasts, rm }: { toasts: Toast[]; rm: (id: number) => void }) {
   return (
@@ -74,6 +88,7 @@ export default function App() {
   const [contacts, setContacts] = useState<Contact[]>([]);
 
   const [modal, setModal] = useState<{ type: string; data: Record<string, any> } | null>(null);
+  const [langTab, setLangTab] = useState<LangTab>('en');
 
   const toast = (type: 'success' | 'error', msg: string) => {
     const id = ++_tid;
@@ -82,7 +97,7 @@ export default function App() {
   };
   const rmToast = (id: number) => setToasts(p => p.filter(t => t.id !== id));
   const askConfirm = (msg: string, cb: () => void) => setConfirm({ msg, cb });
-  const openModal = (type: string, data: Record<string, any>) => setModal({ type, data });
+  const openModal = (type: string, data: Record<string, any>) => { setModal({ type, data }); setLangTab('en'); };
   const patchModal = (patch: Record<string, any>) => setModal(m => m ? { ...m, data: { ...m.data, ...patch } } : null);
 
   const loadData = async () => {
@@ -100,8 +115,11 @@ export default function App() {
 
   useEffect(() => { if (isLoggedIn) loadData(); }, [isLoggedIn]);
   useEffect(() => {
-    if (activeTab === 'contacts' && isLoggedIn)
-      api.getContacts().then(r => setContacts(r.data)).catch(() => {});
+    if (activeTab === 'contacts' && isLoggedIn) {
+      api.getContacts()
+        .then(r => setContacts(Array.isArray(r.data) ? r.data : []))
+        .catch(() => setContacts([]));
+    }
   }, [activeTab, isLoggedIn]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -251,7 +269,7 @@ export default function App() {
     { tab: 'projects', label: 'Projects', count: projects.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" /></svg> },
     { tab: 'experience', label: 'Experience', count: experiences.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg> },
     { tab: 'blog', label: 'Blog', count: blogPosts.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" /></svg> },
-    { tab: 'contacts', label: 'Messages', count: contacts.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg> },
+    { tab: 'contacts', label: 'Messages', count: contacts.filter(c => !c.read).length || contacts.length, icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg> },
   ];
 
   const catColor = (cat: string) =>
@@ -381,14 +399,44 @@ export default function App() {
                     <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Full Name</label>
                     <input className={I} value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title</label>
-                    <input className={I} value={profile.title} onChange={e => setProfile({ ...profile, title: e.target.value })} />
-                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Bio</label>
-                  <textarea className={`${I} resize-none`} rows={4} value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })} />
+
+                {/* Title & Bio with language tabs */}
+                <div className="border border-slate-700/60 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Translatable Content</p>
+                    <LangTabs active={langTab} onChange={setLangTab} />
+                  </div>
+                  {langTab === 'en' && (<>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (EN)</label>
+                      <input className={I} value={profile.title} onChange={e => setProfile({ ...profile, title: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Bio (EN)</label>
+                      <textarea className={`${I} resize-none`} rows={4} value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })} />
+                    </div>
+                  </>)}
+                  {langTab === 'ru' && (<>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (RU)</label>
+                      <input className={I} value={profile.titleRu || ''} onChange={e => setProfile({ ...profile, titleRu: e.target.value })} placeholder="Русский заголовок..." />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Bio (RU)</label>
+                      <textarea className={`${I} resize-none`} rows={4} value={profile.bioRu || ''} onChange={e => setProfile({ ...profile, bioRu: e.target.value })} placeholder="Биография на русском..." />
+                    </div>
+                  </>)}
+                  {langTab === 'uz' && (<>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (UZ)</label>
+                      <input className={I} value={profile.titleUz || ''} onChange={e => setProfile({ ...profile, titleUz: e.target.value })} placeholder="O'zbekcha sarlavha..." />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Bio (UZ)</label>
+                      <textarea className={`${I} resize-none`} rows={4} value={profile.bioUz || ''} onChange={e => setProfile({ ...profile, bioUz: e.target.value })} placeholder="O'zbekcha biografiya..." />
+                    </div>
+                  </>)}
                 </div>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div>
@@ -586,37 +634,159 @@ export default function App() {
           {/* CONTACTS */}
           {activeTab === 'contacts' && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Messages</h2>
-              <div className="space-y-3">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Messages</h2>
+                  {contacts.length > 0 && (
+                    <p className="text-slate-500 text-xs mt-1">
+                      {contacts.filter(c => !c.read).length > 0
+                        ? `${contacts.filter(c => !c.read).length} unread · ${contacts.length} total`
+                        : `${contacts.length} messages · all read`}
+                    </p>
+                  )}
+                </div>
+                {contacts.some(c => !c.read) && (
+                  <button
+                    onClick={async () => {
+                      const unread = contacts.filter(c => !c.read);
+                      await Promise.all(unread.map(c => api.markContactRead(c.id!).catch(() => {})));
+                      setContacts(contacts.map(c => ({ ...c, read: true })));
+                      toast('success', 'All messages marked as read');
+                    }}
+                    className="text-xs px-3 py-1.5 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 rounded-lg transition-all"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 {contacts.map(contact => (
-                  <div key={contact.id} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-                    <div className="flex items-start justify-between gap-4">
+                  <div
+                    key={contact.id}
+                    className={`rounded-2xl border transition-all ${
+                      contact.read
+                        ? 'bg-slate-800/30 border-slate-700/40'
+                        : 'bg-slate-800/70 border-blue-500/30 shadow-sm shadow-blue-500/5'
+                    }`}
+                  >
+                    {/* Header row — always visible */}
+                    <div className="flex items-center gap-3 px-5 py-4">
+                      {/* Unread dot */}
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${contact.read ? 'bg-slate-700' : 'bg-blue-500'}`} />
+
+                      {/* Avatar */}
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
+                           style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)' }}>
+                        {contact.name.charAt(0).toUpperCase()}
+                      </div>
+
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1 flex-wrap">
-                          <span className="text-slate-100 font-semibold text-sm">{contact.name}</span>
-                          <a href={`mailto:${contact.email}`} className="text-blue-400 hover:text-blue-300 text-xs transition-colors">{contact.email}</a>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-sm font-semibold ${contact.read ? 'text-slate-300' : 'text-white'}`}>
+                            {contact.name}
+                          </span>
+                          <span className="text-slate-500 text-xs">{contact.email}</span>
+                          {!contact.read && (
+                            <span className="text-xs px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30">New</span>
+                          )}
                         </div>
                         {contact.subject && (
-                          <p className="text-slate-300 text-xs font-medium mb-1.5">
-                            <span className="text-slate-500">Subject: </span>{contact.subject}
+                          <p className={`text-xs truncate mt-0.5 ${contact.read ? 'text-slate-500' : 'text-slate-300 font-medium'}`}>
+                            {contact.subject}
                           </p>
                         )}
-                        <p className="text-slate-400 text-sm leading-relaxed">{contact.message}</p>
-                        {contact.createdAt && (
-                          <p className="text-slate-600 text-xs mt-2">{new Date(contact.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                      </div>
+
+                      {contact.createdAt && (
+                        <span className="text-slate-600 text-xs shrink-0 hidden sm:block">
+                          {new Date(contact.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+
+                      <div className="flex gap-1 shrink-0">
+                        {!contact.read && (
+                          <button
+                            onClick={async () => {
+                              await api.markContactRead(contact.id!).catch(() => {});
+                              setContacts(contacts.map(c => c.id === contact.id ? { ...c, read: true } : c));
+                            }}
+                            title="Mark as read"
+                            className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
                         )}
-                      </div>
-                      <div className="flex gap-1.5 shrink-0">
-                        <a href={`mailto:${contact.email}?subject=Re: ${contact.subject || ''}`}
-                          className="text-emerald-400 hover:text-emerald-300 text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition-all">
-                          Reply
+                        <a
+                          href={`mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject || 'Your message')}`}
+                          title="Reply"
+                          onClick={async () => {
+                            if (!contact.read) {
+                              await api.markContactRead(contact.id!).catch(() => {});
+                              setContacts(contacts.map(c => c.id === contact.id ? { ...c, read: true } : c));
+                            }
+                          }}
+                          className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                          </svg>
                         </a>
-                        <button onClick={() => delContact(contact.id!)} className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-all">Delete</button>
+                        <button
+                          onClick={() => delContact(contact.id!)}
+                          title="Delete"
+                          className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
+                    </div>
+
+                    {/* Message body */}
+                    <div className="px-5 pb-4 pl-[3.75rem]">
+                      <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">{contact.message}</p>
+                      {contact.createdAt && (
+                        <p className="text-slate-600 text-xs mt-2">
+                          {new Date(contact.createdAt).toLocaleString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+                      <a
+                        href={`mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject || 'Your message')}`}
+                        onClick={async () => {
+                          if (!contact.read) {
+                            await api.markContactRead(contact.id!).catch(() => {});
+                            setContacts(contacts.map(c => c.id === contact.id ? { ...c, read: true } : c));
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 mt-3 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Reply to {contact.name}
+                      </a>
                     </div>
                   </div>
                 ))}
-                {contacts.length === 0 && <p className="py-14 text-center text-slate-600 text-sm">No messages yet.</p>}
+
+                {contacts.length === 0 && (
+                  <div className="py-20 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-7 h-7 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                      </svg>
+                    </div>
+                    <p className="text-slate-500 text-sm font-medium">No messages yet</p>
+                    <p className="text-slate-700 text-xs mt-1">Messages sent through the contact form will appear here</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -675,13 +845,41 @@ export default function App() {
               {/* ── Project form ── */}
               {modal.type === 'projects' && (
                 <form onSubmit={e => { e.preventDefault(); saveProject(modal.data); }} className="space-y-4">
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title *</label>
-                    <input className={I} value={modal.data.title} onChange={e => patchModal({ title: e.target.value })} required />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description *</label>
-                    <textarea className={`${I} resize-none`} rows={4} value={modal.data.description} onChange={e => patchModal({ description: e.target.value })} required />
+                  <div className="border border-slate-700/60 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Translatable</p>
+                      <LangTabs active={langTab} onChange={setLangTab} />
+                    </div>
+                    {langTab === 'en' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (EN) *</label>
+                        <input className={I} value={modal.data.title} onChange={e => patchModal({ title: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (EN) *</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.description} onChange={e => patchModal({ description: e.target.value })} required />
+                      </div>
+                    </>)}
+                    {langTab === 'ru' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (RU)</label>
+                        <input className={I} value={modal.data.titleRu || ''} onChange={e => patchModal({ titleRu: e.target.value })} placeholder="Название на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (RU)</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.descriptionRu || ''} onChange={e => patchModal({ descriptionRu: e.target.value })} placeholder="Описание на русском..." />
+                      </div>
+                    </>)}
+                    {langTab === 'uz' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (UZ)</label>
+                        <input className={I} value={modal.data.titleUz || ''} onChange={e => patchModal({ titleUz: e.target.value })} placeholder="O'zbekcha sarlavha..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (UZ)</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.descriptionUz || ''} onChange={e => patchModal({ descriptionUz: e.target.value })} placeholder="O'zbekcha tavsif..." />
+                      </div>
+                    </>)}
                   </div>
                   <div>
                     <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Technologies <span className="normal-case text-slate-600">(comma separated)</span></label>
@@ -723,14 +921,6 @@ export default function App() {
                 <form onSubmit={e => { e.preventDefault(); saveExperience(modal.data); }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Position *</label>
-                      <input className={I} value={modal.data.position} onChange={e => patchModal({ position: e.target.value })} required />
-                    </div>
-                    <div>
-                      <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Company *</label>
-                      <input className={I} value={modal.data.company} onChange={e => patchModal({ company: e.target.value })} required />
-                    </div>
-                    <div>
                       <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Location</label>
                       <input className={I} value={modal.data.location} onChange={e => patchModal({ location: e.target.value })} />
                     </div>
@@ -747,9 +937,54 @@ export default function App() {
                       <input type="month" className={I} value={modal.data.endDate || ''} disabled={modal.data.current} onChange={e => patchModal({ endDate: e.target.value })} />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description *</label>
-                    <textarea className={`${I} resize-none`} rows={5} value={modal.data.description} onChange={e => patchModal({ description: e.target.value })} required />
+
+                  <div className="border border-slate-700/60 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Translatable</p>
+                      <LangTabs active={langTab} onChange={setLangTab} />
+                    </div>
+                    {langTab === 'en' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Position (EN) *</label>
+                        <input className={I} value={modal.data.position} onChange={e => patchModal({ position: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Company (EN) *</label>
+                        <input className={I} value={modal.data.company} onChange={e => patchModal({ company: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (EN) *</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.description} onChange={e => patchModal({ description: e.target.value })} required />
+                      </div>
+                    </>)}
+                    {langTab === 'ru' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Position (RU)</label>
+                        <input className={I} value={modal.data.positionRu || ''} onChange={e => patchModal({ positionRu: e.target.value })} placeholder="Должность на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Company (RU)</label>
+                        <input className={I} value={modal.data.companyRu || ''} onChange={e => patchModal({ companyRu: e.target.value })} placeholder="Компания на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (RU)</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.descriptionRu || ''} onChange={e => patchModal({ descriptionRu: e.target.value })} placeholder="Описание на русском..." />
+                      </div>
+                    </>)}
+                    {langTab === 'uz' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Position (UZ)</label>
+                        <input className={I} value={modal.data.positionUz || ''} onChange={e => patchModal({ positionUz: e.target.value })} placeholder="O'zbekcha lavozim..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Company (UZ)</label>
+                        <input className={I} value={modal.data.companyUz || ''} onChange={e => patchModal({ companyUz: e.target.value })} placeholder="O'zbekcha kompaniya..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Description (UZ)</label>
+                        <textarea className={`${I} resize-none`} rows={4} value={modal.data.descriptionUz || ''} onChange={e => patchModal({ descriptionUz: e.target.value })} placeholder="O'zbekcha tavsif..." />
+                      </div>
+                    </>)}
                   </div>
                   <label className="flex items-center gap-2.5 cursor-pointer select-none">
                     <input type="checkbox" checked={modal.data.current}
@@ -768,22 +1003,59 @@ export default function App() {
               {modal.type === 'blog' && (
                 <form onSubmit={e => { e.preventDefault(); saveBlog(modal.data); }} className="space-y-4">
                   <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title *</label>
-                    <input className={I} value={modal.data.title}
-                      onChange={e => patchModal({ title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') })}
-                      required />
-                  </div>
-                  <div>
                     <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Slug</label>
                     <input className={I} value={modal.data.slug} onChange={e => patchModal({ slug: e.target.value })} required />
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Excerpt *</label>
-                    <textarea className={`${I} resize-none`} rows={2} value={modal.data.excerpt} onChange={e => patchModal({ excerpt: e.target.value })} required />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Content *</label>
-                    <textarea className={`${I} resize-none`} rows={7} value={modal.data.content} onChange={e => patchModal({ content: e.target.value })} required />
+
+                  <div className="border border-slate-700/60 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Translatable</p>
+                      <LangTabs active={langTab} onChange={setLangTab} />
+                    </div>
+                    {langTab === 'en' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (EN) *</label>
+                        <input className={I} value={modal.data.title}
+                          onChange={e => patchModal({ title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') })}
+                          required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Excerpt (EN) *</label>
+                        <textarea className={`${I} resize-none`} rows={2} value={modal.data.excerpt} onChange={e => patchModal({ excerpt: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Content (EN) *</label>
+                        <textarea className={`${I} resize-none`} rows={6} value={modal.data.content} onChange={e => patchModal({ content: e.target.value })} required />
+                      </div>
+                    </>)}
+                    {langTab === 'ru' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (RU)</label>
+                        <input className={I} value={modal.data.titleRu || ''} onChange={e => patchModal({ titleRu: e.target.value })} placeholder="Заголовок на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Excerpt (RU)</label>
+                        <textarea className={`${I} resize-none`} rows={2} value={modal.data.excerptRu || ''} onChange={e => patchModal({ excerptRu: e.target.value })} placeholder="Краткое описание на русском..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Content (RU)</label>
+                        <textarea className={`${I} resize-none`} rows={6} value={modal.data.contentRu || ''} onChange={e => patchModal({ contentRu: e.target.value })} placeholder="Содержание на русском..." />
+                      </div>
+                    </>)}
+                    {langTab === 'uz' && (<>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Title (UZ)</label>
+                        <input className={I} value={modal.data.titleUz || ''} onChange={e => patchModal({ titleUz: e.target.value })} placeholder="O'zbekcha sarlavha..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Excerpt (UZ)</label>
+                        <textarea className={`${I} resize-none`} rows={2} value={modal.data.excerptUz || ''} onChange={e => patchModal({ excerptUz: e.target.value })} placeholder="O'zbekcha qisqa tavsif..." />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1.5">Content (UZ)</label>
+                        <textarea className={`${I} resize-none`} rows={6} value={modal.data.contentUz || ''} onChange={e => patchModal({ contentUz: e.target.value })} placeholder="O'zbekcha kontent..." />
+                      </div>
+                    </>)}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>

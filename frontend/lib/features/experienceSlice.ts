@@ -4,8 +4,14 @@ import { getExperience } from '../api';
 interface Experience {
   id: string;
   company: string;
+  companyRu?: string;
+  companyUz?: string;
   position: string;
+  positionRu?: string;
+  positionUz?: string;
   description: string;
+  descriptionRu?: string;
+  descriptionUz?: string;
   location: string;
   startDate: string;
   endDate?: string;

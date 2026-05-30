@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaGithub, FaExternalLinkAlt } from 'react-icons/fa';
 import { HiStar } from 'react-icons/hi';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, localize } from '@/lib/i18n';
 
 interface Project {
   id: string;
@@ -32,7 +32,9 @@ const TECH_COLORS: Record<string, string> = {
 };
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const title = localize(project as Record<string, any>, 'title', lang);
+  const description = localize(project as Record<string, any>, 'description', lang);
   const [hovered, setHovered] = useState(false);
 
   const gradients = [
@@ -95,9 +97,9 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       {/* Content */}
       <div className="p-6 flex flex-col flex-1">
         <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-          {project.title}
+          {title}
         </h3>
-        <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{project.description}</p>
+        <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{description}</p>
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           {project.technologies.slice(0, 5).map((tech) => (

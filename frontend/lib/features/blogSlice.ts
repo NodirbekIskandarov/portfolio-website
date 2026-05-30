@@ -4,9 +4,15 @@ import { getBlogPosts, getBlogPost } from '../api';
 interface BlogPost {
   id: string;
   title: string;
+  titleRu?: string;
+  titleUz?: string;
   slug: string;
   content: string;
+  contentRu?: string;
+  contentUz?: string;
   excerpt: string;
+  excerptRu?: string;
+  excerptUz?: string;
   image?: string;
   tags: string[];
   published: boolean;

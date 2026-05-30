@@ -77,6 +77,13 @@ export function useTranslation() {
   return useContext(LangContext);
 }
 
+// Returns the localized field value with fallback to English
+export function localize(obj: Record<string, any>, field: string, lang: Lang): string {
+  if (lang === 'en') return (obj[field] as string) || '';
+  const key = `${field}${lang.charAt(0).toUpperCase()}${lang.slice(1)}`;
+  return (obj[key] as string) || (obj[field] as string) || '';
+}
+
 export function timeAgo(dateStr: string | undefined, tb: T['blog']): string {
   if (!dateStr) return '';
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
